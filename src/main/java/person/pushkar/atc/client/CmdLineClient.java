@@ -8,6 +8,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status.Family;
 
 import person.pushkar.atc.model.Flight;
 import person.pushkar.atc.model.FlightLedger;
@@ -24,8 +26,8 @@ public class CmdLineClient
     	TAKE_OFF("takeOff", "takeOff/airplane/"),
     	LAND("land", "landing/airplane/"),
     	STATUS("status", "status/"),
-    	COMMISSION_RUNWAY("commissonRunway", "runway/commission/"),
-    	DECOMMISSION_RUNWAY("commissonRunway", "runway/decommission/");
+    	COMMISSION_RUNWAY("commissionRunway", "runway/commission/"),
+    	DECOMMISSION_RUNWAY("decommissionRunway", "runway/decommission/");
     	private String commandText;
     	private String uri;
     	
@@ -70,8 +72,15 @@ public class CmdLineClient
 		        	case TAKE_OFF:
 		        	case COMMISSION_RUNWAY:
 		        	case DECOMMISSION_RUNWAY:
-		        		client.target(BASE_URI + command.uri).path(tokens[1])
+		        		Response res = client.target(BASE_URI + command.uri).path(tokens[1])
 		        			.request(MediaType.APPLICATION_JSON).post(Entity.json(""));
+		        		
+		        		if(res.getStatusInfo().getFamily() != Family.SUCCESSFUL) {
+		        			System.out.println(
+		        				String.format("Error executing command: %s \n %s ", 
+		        					command, res.readEntity(String.class)));
+		        		}
+		        		
 		        		break; 
 		        		
 		        	case STATUS:
